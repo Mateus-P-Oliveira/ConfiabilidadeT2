@@ -137,6 +137,8 @@ def main():
         'Y': 0.0686, 'Z': 0.4824
     }
 
+    out = ""  # Inicializa 'out' para evitar UnboundLocalError
+
     while i < len(argv):
         if argv[i] == '-m':
             i += 1
