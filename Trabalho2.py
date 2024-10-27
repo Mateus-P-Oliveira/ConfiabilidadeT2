@@ -175,11 +175,13 @@ def main():
             decrypted_text = decipher_vigenere(s, key)
             print("Decrypted Text:", decrypted_text)
 
-            # Salva o texto decifrado em um arquivo
+            # Salva o texto decifrado e a chave em um arquivo
             output_filename = input("Enter the output filename (with .txt): ")
             with open(output_filename, 'w') as output_file:
                 output_file.write(decrypted_text)
-            print(f"Decrypted text saved to {output_filename}")
+                output_file.write(f"\nKey: {key}\n")
+                output_file.write(f"Key Length: {key_length}\n")
+            print(f"Decrypted text, key, and key length saved to {output_filename}")
 
         else:
             print("No key length found.")
