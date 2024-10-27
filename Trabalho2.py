@@ -33,7 +33,6 @@ def kasiski(s, min_num=3):
             if found[k][v] > 2:
                 matches.append(v)
 
-    # Calcula fatores e encontra o melhor comprimento de chave
     key_lengths = []
     for v in matches:
         k = len(v)
@@ -43,7 +42,6 @@ def kasiski(s, min_num=3):
             factor = math.gcd(factor, p[i] - p[i - 1])
         key_lengths.append(factor)
 
-    # Seleciona o comprimento de chave mais frequente
     if key_lengths:
         best_length = Counter(key_lengths).most_common(1)[0][0]
     else:
@@ -176,6 +174,13 @@ def main():
             print(f"Derived Key: {key}")
             decrypted_text = decipher_vigenere(s, key)
             print("Decrypted Text:", decrypted_text)
+
+            # Salva o texto decifrado em um arquivo
+            output_filename = input("Enter the output filename (with .txt): ")
+            with open(output_filename, 'w') as output_file:
+                output_file.write(decrypted_text)
+            print(f"Decrypted text saved to {output_filename}")
+
         else:
             print("No key length found.")
     else:
