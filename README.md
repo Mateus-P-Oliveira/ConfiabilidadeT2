@@ -1,11 +1,9 @@
 # ConfiabilidadeT2
 
 
-Kasiski method
-https://github.com/nytr0gen/kasiski/blob/master/kasiski.py
 
 
+Linha de comando:
+python Trabalho2.py -k arquivo_com_texto_cifrado.txt
 
-linha de comando
-
-python Trabalho2.py -k 20092.txt
+Ao terminar de executar irá pedir um input no terminal para definir o nome do arquivo onde irá ser salvo o texto decifrado 

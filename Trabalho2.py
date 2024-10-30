@@ -3,21 +3,16 @@ import re
 import math
 from collections import Counter
 
-# Função para normalizar texto
-def normalize(s):
-    s = s.strip().upper()
-    s = re.sub(r'[^A-Z]+', '', s)
-    return s
-
-# Função para o teste de Kasiski
+# Função para o teste de Kasiski que determina o comprimento da chave
 def kasiski(s, min_num=3):
-    matches = []
-    found = {}
+    matches = []  # Lista para substrings repetidas
+    found = {}    # Dicionário para contar ocorrências
 
     for k in range(min_num, len(s) // 2):
         found[k] = {}
         shouldbreak = True
         
+        # Conta ocorrências de substrings de comprimento k
         for i in range(len(s) - k):
             v = s[i:i+k]
             if v not in found[k]:
@@ -27,8 +22,9 @@ def kasiski(s, min_num=3):
                 shouldbreak = False
 
         if shouldbreak:
-            break
+            break  # Sai se não encontrar mais repetições
 
+        # Adiciona substrings que aparecem mais de duas vezes
         for v in found[k]:
             if found[k][v] > 2:
                 matches.append(v)
@@ -49,74 +45,73 @@ def kasiski(s, min_num=3):
 
     return best_length
 
-# Função para gerar tabela de frequências
+# Função para gerar tabela de frequências dos caracteres alfabéticos
 def ftable(s, skip=0, period=1):
-    s = normalize(s)
-
     slen = 0
-    count = [0 for _ in range(26)]
+    count = [0 for _ in range(26)]  # Contador para cada letra do alfabeto
     for i in range(skip, len(s), period):
-        slen += 1
-        count[ord(s[i]) - 65] += 1
+        if s[i].isalpha():  # Verifica se é uma letra
+            slen += 1
+            count[ord(s[i].upper()) - 65] += 1  # Incrementa o contador para a letra correspondente
 
     out = f"Total chars: {slen}\n"
     for c, n in enumerate(count):
         c = chr(c + 65)
-        percent = 100.0 * n / slen
+        percent = 100.0 * n / slen if slen > 0 else 0
         out += f"{c}: {n:10d} ({percent:6.2f}%) {'*' * math.ceil(percent)}\n"
 
-    ic = (1.00 / (slen * (slen - 1))) * sum(f * (f - 1) for f in count)
+    ic = (1.00 / (slen * (slen - 1))) * sum(f * (f - 1) for f in count) if slen > 1 else 0
     out += f"\nIndex of Coincidence: {ic:.4f}\n"
 
     return out
 
-# Função para análise de frequência
+# Função para analisar a frequência de letras em uma string
 def analyze_frequency(s):
-    s = normalize(s)
     count = Counter(s)
     total = sum(count.values())
-    freq = {chr(i + 65): 0 for i in range(26)}
+    freq = {chr(i + 65): 0 for i in range(26)}  # Inicializa frequências para cada letra
     for letter, num in count.items():
-        freq[letter] = num / total * 100
+        if letter.isalpha():  # Verifica se é uma letra
+            freq[letter.upper()] = num / total * 100  # Calcula a frequência percentual
     return freq
 
-# Função para calcular o deslocamento da letra
+# Função para calcular o deslocamento necessário para alinhar frequências
 def calculate_shift(segment_freq, expected_freq):
-    max_letter = max(segment_freq, key=segment_freq.get)
-    max_expected = max(expected_freq, key=expected_freq.get)
-    shift = (ord(max_letter) - ord(max_expected)) % 26
+    max_letter = max(segment_freq, key=segment_freq.get)  # Letra mais frequente do segmento
+    max_expected = max(expected_freq, key=expected_freq.get)  # Letra mais frequente esperada
+    shift = (ord(max_letter) - ord(max_expected)) % 26  # Calcula o deslocamento
     return shift
 
-# Função para decifrar a cifra de Vigenère
+# Função para decifrar um texto cifrado usando a cifra de Vigenère
 def decipher_vigenere(ciphertext, key):
     decrypted = []
     key_length = len(key)
     for i, char in enumerate(ciphertext):
         if char.isalpha():
-            shift = ord(key[i % key_length]) - ord('A')
-            decrypted_char = chr((ord(char) - shift - 65) % 26 + 65)
+            shift = ord(key[i % key_length]) - ord('A')  # Calcula o deslocamento usando a chave
+            decrypted_char = chr((ord(char.upper()) - shift - 65) % 26 + 65)
             decrypted.append(decrypted_char)
         else:
-            decrypted.append(char)  # Manter não alfabéticos inalterados
+            decrypted.append(char)  # Mantém não alfabéticos inalterados
     return ''.join(decrypted)
 
-# Função para tentar decifrar com chave derivada
+# Função para derivar a chave a partir do texto cifrado
 def derive_key(ciphertext, key_length, expected_freq):
-    segments = ['' for _ in range(key_length)]
-    
+    segments = ['' for _ in range(key_length)]  # Cria listas para segmentos
+
     for i, char in enumerate(ciphertext):
         if char.isalpha():
-            segments[i % key_length] += char
+            segments[i % key_length] += char.upper()  # Adiciona letras a segmentos correspondentes
 
     key = []
     for segment in segments:
-        segment_freq = analyze_frequency(segment)
-        shift = calculate_shift(segment_freq, expected_freq)
-        key.append(chr(shift + 65))  # Convert shift to letter
+        segment_freq = analyze_frequency(segment)  # Analisa a frequência do segmento
+        shift = calculate_shift(segment_freq, expected_freq)  # Calcula o deslocamento
+        key.append(chr(shift + 65))  # Converte o deslocamento em letra
     
-    return ''.join(key)
+    return ''.join(key)  # Retorna a chave como uma string
 
-# Função principal
+# Função principal que controla o fluxo do programa
 def main():
     i, k = 1, 0
     min_num = 3
@@ -138,6 +133,7 @@ def main():
     out = ""  # Inicializa 'out' para evitar UnboundLocalError
 
     while i < len(argv):
+        # Processa argumentos da linha de comando
         if argv[i] == '-m':
             i += 1
             min_num = int(argv[i])
@@ -153,21 +149,23 @@ def main():
             analysis_type = 'ftable'
         elif argv[i][0] != '-':
             if k == 0:
-                infile = argv[i]
+                infile = argv[i]  # Nome do arquivo de entrada
             elif k == 1:
-                outfile = argv[i]
+                outfile = argv[i]  # Nome do arquivo de saída
             k += 1
         i += 1
 
     s = None
+    # Lê o texto cifrado de um arquivo ou da entrada padrão
     if infile is None:
         s = input("Enter the text: ")
     else:
         with open(infile, 'r') as f:
             s = f.read()
 
+    # Realiza análise de Kasiski se especificado
     if analysis_type == 'kasiski':
-        key_length = kasiski(normalize(s), min_num)
+        key_length = kasiski(s, min_num)
         if key_length is not None:
             print(f"Best key length: {key_length}")
             key = derive_key(s, key_length, expected_freq)
@@ -186,13 +184,13 @@ def main():
         else:
             print("No key length found.")
     else:
-        out = ftable(s, skip, period)
+        out = ftable(s, skip, period)  # Gera a tabela de frequências
 
     if outfile is None:
-        print(out)
+        print(out)  # Exibe resultado na tela
     else:
         with open(outfile, 'w') as f:
-            f.write(out)
+            f.write(out)  # Salva resultado em arquivo
 
 if __name__ == "__main__":
     main()
